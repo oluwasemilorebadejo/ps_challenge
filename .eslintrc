@@ -1,0 +1,13 @@
+{
+  "parser": "@typescript/parser",
+  "plugins": [
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended",
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+  },
+  "rules": {},
+}
