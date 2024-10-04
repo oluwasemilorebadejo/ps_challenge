@@ -1,8 +1,8 @@
 import express, { Application, Request, Response, NextFunction } from "express";
 
-// import authRouter from "./routes/v1/auth";
-// import userRouter from "./routes/v1/user";
-// import roomRouter from "./routes/v1/room";
+import authRouter from "./routes/v1/auth";
+import userRouter from "./routes/v1/user";
+import roomRouter from "./routes/v1/room";
 import HttpException from "./utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import errorMiddleware from "./middleware/error";
@@ -20,9 +20,9 @@ if (config.get<string>("node_env") === "development") {
 
 app.use(cookieParser());
 
-// app.use("/api/v1/auth", authRouter);
-// app.use("/api/v1/users", userRouter);
-// app.use("/api/v1/rooms", roomRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/rooms", roomRouter);
 
 app.use("*", async (req: Request, res: Response, next: NextFunction) => {
   next(
