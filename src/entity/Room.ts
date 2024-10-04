@@ -23,7 +23,7 @@ export default class Room extends BaseEntity {
   @Column({ type: "float" })
   amountPerPerson!: number;
 
-  @Column({ type: "int", default: 0 })
+  @Column({ type: "int", default: 1 })
   numberOfPeople!: number;
 
   @Column({ type: "int" })

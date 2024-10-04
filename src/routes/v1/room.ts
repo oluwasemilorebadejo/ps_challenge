@@ -10,6 +10,8 @@ router.route("/:code").get(roomController.getRoom);
 
 router.use(authMiddleware.authorize);
 
+router.get("/user/me", roomController.getMyRooms); // come back to rename
+
 router.post("/join/:code", roomController.joinRoom);
 
 router.use(authMiddleware.restrictTo(UserRole.COLLECTOR, UserRole.ADMIN));

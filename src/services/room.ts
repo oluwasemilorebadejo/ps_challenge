@@ -47,24 +47,35 @@ export const joinRoom = async (
     throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
   }
 
-  const user = await User.findOne({ where: { id: currentUser?.id } });
+  const user = await User.findOne({
+    where: { id: currentUser?.id },
+    relations: {
+      room: true,
+    },
+  });
 
   if (!user) {
-    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+    throw new HttpException("User doesn't exist", HttpStatusCode.NOT_FOUND);
   }
 
   if (room.numberOfPeople >= room.maxNumberOfPeople) {
     throw new HttpException("Room is filled up", HttpStatusCode.BAD_REQUEST);
   }
 
-  // add room to user
-  user.room = [room];
+  if (user.room.some((r) => r.id === room.id)) {
+    throw new HttpException(
+      "User is already in this room",
+      HttpStatusCode.BAD_REQUEST,
+    );
+  }
+
+  user.room = [...user.room, room];
 
   await user.save();
 
   // THIS OPERATION CAN BE STOPPED IF USER SAVE FAILS
 
-  // increment numberOfPeople
+  // Increment the number of people in the room
   room.numberOfPeople += 1;
 
   await room.save();
@@ -110,9 +121,16 @@ export const updateRoom = async (
     throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
   }
 
-  // ONLY THE OWNER OF THE ROOM CAN MAKE CHANGES TO THE ROOM
-  if (room.owner.id !== currentUser?.id) {
-    throw new HttpException("Access denied", HttpStatusCode.FORBIDDEN);
+  if (!currentUser) {
+    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+  }
+
+  // ONLY THE OWNER OF THE ROOM CAN MAKE CHANGES TO THEIR ROOM
+  if (room.owner.id !== currentUser.id) {
+    throw new HttpException(
+      "Access denied. You are not allowed to perform this operation",
+      HttpStatusCode.FORBIDDEN,
+    );
   }
 
   // Ensure that fields like 'code' cannot be updated
@@ -123,4 +141,41 @@ export const updateRoom = async (
   await room.save();
 
   return room;
+};
+
+export const getMyRooms = async (currentUser: IUser | undefined) => {
+  if (!currentUser) {
+    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+  }
+
+  const user = await User.findOne({
+    where: {
+      id: currentUser.id,
+    },
+    relations: {
+      room: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+  }
+
+  if (!user.room) {
+    throw new HttpException(
+      "You havent joined any rooms. Kindly join one now!",
+      HttpStatusCode.NOT_FOUND,
+    );
+  }
+
+  return user.room;
+
+  // if (!myRooms) {
+  //   throw new HttpException(
+  //     "You havent joined any rooms. Kindly join one now!",
+  //     HttpStatusCode.NOT_FOUND,
+  //   );
+  // }
+
+  // return myRooms;
 };

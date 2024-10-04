@@ -117,13 +117,23 @@ export const updateRoom = async (
   }
 };
 
-// export const joinRoom = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ): Promise<void> => {
-//   try {
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+export const getMyRooms = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const currentUser = req.user;
+  try {
+    const myRooms = await roomService.getMyRooms(currentUser);
+
+    res.status(200).json({
+      status: ResponseStatus.SUCCESS,
+      message: "List of the rooms you belong to",
+      data: {
+        myRooms,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
