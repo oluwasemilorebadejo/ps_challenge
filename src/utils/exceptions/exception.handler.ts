@@ -3,7 +3,7 @@ import { Response } from "express";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import config from "config";
 import { JsonWebTokenError } from "jsonwebtoken";
-// import { ResponseStatus } from "../../enums/ResponseStatus";
+import { ResponseStatus } from "../../enums/ResponseStatus";
 
 class ErrorHandler {
   private isTrustedError(err: Error): boolean {
@@ -38,14 +38,14 @@ class ErrorHandler {
 
     if (config.get<string>("node_env") === "development") {
       res.status(statusCode).json({
-        // status: ResponseStatus.FAIL,
+        status: ResponseStatus.FAIL,
         message: message,
         error: err,
         stack: err.stack,
       });
     } else {
       res.status(statusCode).json({
-        // status: ResponseStatus.FAIL,
+        status: ResponseStatus.FAIL,
         message: message,
       });
     }
@@ -56,7 +56,7 @@ class ErrorHandler {
     res?: Response,
   ): void {
     res?.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-      // status: ResponseStatus.ERROR,
+      status: ResponseStatus.ERROR,
       message: "Internal Server Error. Something went wrong",
     });
 
