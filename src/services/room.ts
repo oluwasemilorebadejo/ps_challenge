@@ -1,0 +1,126 @@
+import Room from "../entity/Room";
+import User from "../entity/User";
+import { IRoom } from "../interfaces/Room";
+import { IUser } from "../interfaces/User";
+import HttpException from "../utils/exceptions/http.exception";
+import { StatusCodes as HttpStatusCode } from "http-status-codes";
+
+function generateRoomCode(): string {
+  let code = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for (let i = 0; i < 6; i++) {
+    // Generate a random index between 0 and 25
+    const randomIndex = Math.floor(Math.random() * characters.length);
+
+    code += characters[randomIndex];
+  }
+
+  return code;
+}
+
+export const createRoom = async (
+  data: IRoom,
+  owner: IUser | undefined,
+): Promise<IRoom> => {
+  const newRoom = Room.create({
+    code: generateRoomCode(),
+    name: data.name,
+    amountPerPerson: data.amountPerPerson,
+    maxNumberOfPeople: data.maxNumberOfPeople,
+    joinedAt: new Date(),
+    owner,
+  });
+
+  await newRoom.save();
+
+  return newRoom;
+};
+
+export const joinRoom = async (
+  code: string,
+  currentUser: IUser | undefined,
+) => {
+  const room = await Room.findOne({ where: { code: code } });
+
+  if (!room) {
+    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+  }
+
+  const user = await User.findOne({ where: { id: currentUser?.id } });
+
+  if (!user) {
+    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+  }
+
+  if (room.numberOfPeople >= room.maxNumberOfPeople) {
+    throw new HttpException("Room is filled up", HttpStatusCode.BAD_REQUEST);
+  }
+
+  // add room to user
+  user.room = [room];
+
+  await user.save();
+
+  // THIS OPERATION CAN BE STOPPED IF USER SAVE FAILS
+
+  // increment numberOfPeople
+  room.numberOfPeople += 1;
+
+  await room.save();
+};
+
+export const getRooms = async () => {
+  const rooms = await Room.find({
+    // relations: {},
+  });
+
+  return rooms;
+};
+
+export const getRoom = async (roomCode: string) => {
+  const room = await Room.findOne({
+    where: {
+      code: roomCode,
+    },
+  });
+
+  if (!room) {
+    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+  }
+
+  return room;
+};
+
+export const updateRoom = async (
+  id: string,
+  data: Partial<IRoom>,
+  currentUser: IUser | undefined,
+) => {
+  const room = await Room.findOne({
+    where: {
+      id: id,
+    },
+    relations: {
+      owner: true,
+    },
+  });
+
+  if (!room) {
+    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+  }
+
+  // ONLY THE OWNER OF THE ROOM CAN MAKE CHANGES TO THE ROOM
+  if (room.owner.id !== currentUser?.id) {
+    throw new HttpException("Access denied", HttpStatusCode.FORBIDDEN);
+  }
+
+  // Ensure that fields like 'code' cannot be updated
+  const { code, ...allowedUpdates } = data;
+
+  Object.assign(room, allowedUpdates);
+
+  await room.save();
+
+  return room;
+};
