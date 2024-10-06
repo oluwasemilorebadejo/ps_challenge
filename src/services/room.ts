@@ -23,6 +23,24 @@ export const createRoom = async (
   data: IRoom,
   owner: IUser | undefined,
 ): Promise<IRoom> => {
+  if (!owner) {
+    throw new HttpException(
+      "Owner is required to create a room",
+      HttpStatusCode.NOT_FOUND,
+    );
+  }
+
+  const ownerUser = await User.findOne({
+    where: { id: owner.id },
+    relations: {
+      room: true,
+    },
+  });
+
+  if (!ownerUser) {
+    throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
+  }
+
   const newRoom = Room.create({
     code: generateRoomCode(),
     name: data.name,
@@ -30,10 +48,14 @@ export const createRoom = async (
     maxNumberOfPeople: data.maxNumberOfPeople,
     billingDate: data.billingDate,
     joinedAt: new Date(),
-    owner,
+    owner: ownerUser,
   });
 
   await newRoom.save();
+
+  // Add the owner as a member of the room
+  ownerUser.room = [...(ownerUser.room || []), newRoom];
+  await ownerUser.save();
 
   return newRoom;
 };
@@ -145,13 +167,9 @@ export const updateRoom = async (
 };
 
 export const getMyRooms = async (currentUser: IUser | undefined) => {
-  if (!currentUser) {
-    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
-  }
-
   const user = await User.findOne({
     where: {
-      id: currentUser.id,
+      id: currentUser?.id,
     },
     relations: {
       room: true,
@@ -170,4 +188,51 @@ export const getMyRooms = async (currentUser: IUser | undefined) => {
   }
 
   return user.room;
+};
+
+export const leaveRoom = async (
+  code: string,
+  currentUser: IUser | undefined,
+) => {
+  const room = await Room.findOne({
+    where: { code: code },
+    relations: { owner: true },
+  });
+
+  if (!room) {
+    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+  }
+
+  const user = await User.findOne({
+    where: {
+      id: currentUser?.id,
+    },
+    relations: {
+      room: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
+  }
+
+  // Check if the user is part of the room
+  const isUserInRoom = user.room.some((userRoom) => userRoom.id === room.id);
+
+  if (!isUserInRoom) {
+    throw new HttpException(
+      "You are not a member of this room",
+      HttpStatusCode.BAD_REQUEST,
+    );
+  }
+
+  // Remove the room from the user's rooms list
+  user.room = user.room.filter((userRoom) => userRoom.id !== room.id);
+
+  // Decrease the number of people in the room
+  room.numberOfPeople = room.numberOfPeople > 1 ? room.numberOfPeople - 1 : 0;
+
+  // Save both the user and the room entities
+  await user.save();
+  await room.save();
 };

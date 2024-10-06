@@ -14,6 +14,8 @@ router.get("/user/me", roomController.getMyRooms); // come back to rename
 
 router.post("/join/:code", roomController.joinRoom);
 
+router.post("/leave/:code", roomController.leaveRoom);
+
 router.use(authMiddleware.restrictTo(UserRole.COLLECTOR, UserRole.ADMIN));
 
 router.route("/:id").patch(roomController.updateRoom);

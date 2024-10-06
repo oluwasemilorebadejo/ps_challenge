@@ -138,3 +138,23 @@ export const getMyRooms = async (
     next(error);
   }
 };
+
+export const leaveRoom = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const roomCode = req.params.code;
+  const currentUser = req.user;
+
+  try {
+    await roomService.leaveRoom(roomCode, currentUser);
+
+    res.status(200).json({
+      status: ResponseStatus.SUCCESS,
+      message: "You have left the room successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
