@@ -10,12 +10,8 @@ import errorMiddleware from "./middleware/error";
 import config from "config";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import Transaction from "./entity/Transaction";
-import { TransactionStatus } from "./enums/Transaction";
-import PaystackAuthorization from "./entity/PaystackAuthorization";
-
-const crypto = require("crypto");
-const secret = process.env.PAYSTACK_SECRET_KEY;
+import * as paymentController from "./controllers/payment";
+import initializeCronJobs from "./cron";
 
 const app: Application = express();
 
@@ -40,62 +36,9 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.post("/webhook", async (req, res) => {
-  //validate event
-  const hash = crypto
-    .createHmac("sha512", secret)
-    .update(JSON.stringify(req.body))
-    .digest("hex");
-  if (hash == req.headers["x-paystack-signature"]) {
-    // Retrieve the request's body
-    const event = req.body;
-    // console.log(event);
-    // Do something with event
-    if (event.event === "charge.success") {
-      // 1. update transaction status to success and store the entire authorization
+app.post("/webhook", paymentController.webhook);
 
-      const updatedTransaction = await Transaction.findOne({
-        where: { id: event.data.reference },
-      });
-
-      if (!updatedTransaction) {
-        throw new HttpException(
-          "Transaction not found",
-          HttpStatusCode.NOT_FOUND,
-        );
-      }
-
-      updatedTransaction.status = TransactionStatus.SUCCESS;
-
-      await updatedTransaction.save();
-
-      const authorization = event.data.authorization;
-
-      const newPaystackAuthorization = PaystackAuthorization.create({
-        authorizationCode: authorization.authorization_code,
-        bank: authorization.bank,
-        bin: authorization.bin,
-        cardType: authorization.card_type,
-        channel: authorization.channel,
-        countryCode: authorization.country_code,
-        expMonth: authorization.exp_month,
-        expYear: authorization.exp_year,
-        last4: authorization.last4,
-        reusable: authorization.reusable,
-        signature: authorization.signature,
-        transaction: updatedTransaction,
-      });
-
-      await newPaystackAuthorization.save();
-      /*-------------
-      -----*/
-
-      // 2. dont store authorization when transaction fails
-    }
-  }
-  res.send(200);
-  // res.sendStatus(200);
-});
+initializeCronJobs();
 
 app.use("*", async (req: Request, res: Response, next: NextFunction) => {
   next(
