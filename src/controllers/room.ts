@@ -10,13 +10,14 @@ export const createRoom = async (
 ): Promise<void> => {
   const currentUser = req.user;
   try {
-    const { name, amountPerPerson, maxNumberOfPeople } = req.body;
+    const { name, amountPerPerson, maxNumberOfPeople, billingDate } = req.body;
 
     const newRoom = await roomService.createRoom(
       {
         name,
         amountPerPerson,
         maxNumberOfPeople,
+        billingDate,
       },
       currentUser,
     );
