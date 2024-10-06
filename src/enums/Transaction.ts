@@ -3,3 +3,8 @@ export enum TransactionStatus {
   PENDING = "pending",
   FAILED = "failed",
 }
+
+export enum TransactionType {
+  INITIAL = "initial",
+  RECURRING = "recurring",
+}

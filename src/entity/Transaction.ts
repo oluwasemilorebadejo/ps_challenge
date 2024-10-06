@@ -7,7 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
 } from "typeorm";
-import { TransactionStatus } from "../enums/Transaction";
+import { TransactionStatus, TransactionType } from "../enums/Transaction";
 import User from "./User";
 
 @Entity()
@@ -20,10 +20,13 @@ export default class Transaction extends BaseEntity {
     enum: TransactionStatus,
     default: TransactionStatus.PENDING,
   })
-  status!: string;
+  status!: TransactionStatus;
 
   @Column({ type: "float" })
   amount!: number;
+
+  @Column({ type: "enum", enum: TransactionType })
+  type!: TransactionType;
 
   @Column({ type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
   createdAt!: Date;
