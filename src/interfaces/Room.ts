@@ -8,6 +8,7 @@ export interface IRoom {
   amountPerPerson: number;
   numberOfPeople?: number;
   maxNumberOfPeople: number;
+  billingDate: number;
   joinedAt?: Date;
   owner?: IUser;
 }
