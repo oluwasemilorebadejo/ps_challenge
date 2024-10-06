@@ -29,6 +29,9 @@ export default class Room extends BaseEntity {
   @Column({ type: "int" })
   maxNumberOfPeople!: number;
 
+  @Column({ type: "integer" })
+  billingDate!: number;
+
   @ManyToOne(() => User)
   @JoinColumn()
   owner!: User;

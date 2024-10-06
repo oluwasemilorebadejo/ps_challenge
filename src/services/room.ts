@@ -28,6 +28,7 @@ export const createRoom = async (
     name: data.name,
     amountPerPerson: data.amountPerPerson,
     maxNumberOfPeople: data.maxNumberOfPeople,
+    billingDate: data.billingDate,
     joinedAt: new Date(),
     owner,
   });
@@ -161,7 +162,7 @@ export const getMyRooms = async (currentUser: IUser | undefined) => {
     throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
   }
 
-  if (!user.room) {
+  if (user.room.length === 0) {
     throw new HttpException(
       "You havent joined any rooms. Kindly join one now!",
       HttpStatusCode.NOT_FOUND,
@@ -169,13 +170,4 @@ export const getMyRooms = async (currentUser: IUser | undefined) => {
   }
 
   return user.room;
-
-  // if (!myRooms) {
-  //   throw new HttpException(
-  //     "You havent joined any rooms. Kindly join one now!",
-  //     HttpStatusCode.NOT_FOUND,
-  //   );
-  // }
-
-  // return myRooms;
 };
