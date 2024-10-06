@@ -8,6 +8,7 @@ import {
   ManyToOne,
 } from "typeorm";
 import Transaction from "./Transaction";
+import User from "./User";
 
 @Entity()
 export default class PaystackAuthorization extends BaseEntity {
@@ -53,4 +54,8 @@ export default class PaystackAuthorization extends BaseEntity {
   @OneToOne(() => Transaction)
   @JoinColumn()
   transaction!: Transaction;
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user!: User;
 }
