@@ -4,14 +4,19 @@ import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import config from "config";
 import { JsonWebTokenError } from "jsonwebtoken";
 import { ResponseStatus } from "../../enums/ResponseStatus";
+import { QueryFailedError } from "typeorm";
 
 class ErrorHandler {
   private isTrustedError(err: Error): boolean {
-    return err instanceof HttpException || err instanceof JsonWebTokenError;
+    return (
+      err instanceof HttpException ||
+      err instanceof JsonWebTokenError ||
+      err instanceof QueryFailedError
+    );
   }
 
   public handleError(
-    err: Error | HttpException | JsonWebTokenError,
+    err: Error | HttpException | JsonWebTokenError | QueryFailedError,
     res: Response,
   ): void {
     if (this.isTrustedError(err) && res) {
@@ -22,7 +27,7 @@ class ErrorHandler {
   }
 
   public handleTrustedError(
-    err: Error | HttpException | JsonWebTokenError,
+    err: Error | HttpException | JsonWebTokenError | QueryFailedError,
     res: Response,
   ): void {
     let statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
@@ -33,6 +38,9 @@ class ErrorHandler {
       message = err.message;
     } else if (err instanceof JsonWebTokenError) {
       statusCode = HttpStatusCode.UNAUTHORIZED;
+      message = err.message;
+    } else if (err instanceof QueryFailedError) {
+      statusCode = HttpStatusCode.BAD_REQUEST;
       message = err.message;
     }
 
