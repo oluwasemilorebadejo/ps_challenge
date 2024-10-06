@@ -13,4 +13,6 @@ export default {
   database_port: process.env.DATABASE_PORT,
   access_token_secret: process.env.ACCESS_TOKEN_SECRET,
   access_token_expires: process.env.ACCESS_TOKEN_EXPIRES,
+  paystack_public_key: process.env.PAYSTACK_PUBLIC_KEY,
+  paystack_secret_key: process.env.PAYSTACK_SECRET_KEY,
 };
