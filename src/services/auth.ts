@@ -2,9 +2,9 @@ import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import config from "config";
 import { CreateUser, ILogin } from "../interfaces/User";
-import User from "../entity/User";
 import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
+import userRepository from "../repositories/user";
 
 const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, 10);
@@ -22,9 +22,7 @@ const createJwtToken = (id: string): string => {
 };
 
 export const login = async (data: ILogin): Promise<string> => {
-  const user = await User.findOne({
-    where: { email: data.email.toLowerCase() },
-  });
+  const user = await userRepository.findByEmail(data.email);
 
   if (!user || !(await comparePassword(data.password, user.password)))
     throw new HttpException(
@@ -38,9 +36,7 @@ export const login = async (data: ILogin): Promise<string> => {
 };
 
 export const signup = async (data: CreateUser): Promise<void> => {
-  const existingUser = await User.findOne({
-    where: { email: data.email.toLowerCase() },
-  });
+  const existingUser = await userRepository.findByEmail(data.email);
 
   if (existingUser)
     throw new HttpException(
@@ -50,7 +46,7 @@ export const signup = async (data: CreateUser): Promise<void> => {
 
   const hashedPassword = await hashPassword(data.password);
 
-  const newUser = User.create({
+  const newUser = {
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email,
@@ -58,9 +54,9 @@ export const signup = async (data: CreateUser): Promise<void> => {
     age: data.age,
     address: data.address,
     role: data.role,
-  });
+  };
 
-  await newUser.save();
+  await userRepository.create(newUser);
 
   // send email functionality here
 };

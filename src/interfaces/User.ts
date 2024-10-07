@@ -16,7 +16,7 @@ export interface CreateUser {
 }
 
 export interface IUser {
-  id?: string;
+  id: string;
   firstName: string;
   lastName: string;
   age: number;

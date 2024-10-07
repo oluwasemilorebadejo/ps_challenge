@@ -9,25 +9,22 @@ import Transaction from "../entity/Transaction";
 import { TransactionStatus, TransactionType } from "../enums/Transaction";
 import PaystackAuthorization from "../entity/PaystackAuthorization";
 import { IPaystackAuthorization } from "../interfaces/PaystackAuthorization";
+import userRepository from "../repositories/user";
+import roomRepository from "../repositories/room";
 
 export const chargeUser = async (
   roomCode: string,
-  currentUser: IUser | undefined,
+  currentUser: IUser,
 ): Promise<AxiosResponse> => {
-  const user = await User.findOne({
-    where: {
-      id: currentUser?.id,
-    },
-    relations: {
-      room: true,
-    },
-  });
+  const user = await userRepository.findById(currentUser.id, ["room"]);
 
   if (!user) {
     throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
   }
 
-  const room = await Room.findOne({ where: { code: roomCode } });
+  // const room = await Room.findOne({ where: { code: roomCode } });
+
+  const room = await roomRepository.findByCode(roomCode);
 
   if (!room) {
     throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
@@ -128,23 +125,18 @@ export const handleChargeSuccess = async (event: any): Promise<void> => {
 
 const chargeUserJob = async (
   roomCode: string,
-  currentUser: IUser | undefined,
+  currentUser: IUser,
   authorization: IPaystackAuthorization,
 ) => {
-  const user = await User.findOne({
-    where: {
-      id: currentUser?.id,
-    },
-    relations: {
-      room: true,
-    },
-  });
+  const user = await userRepository.findById(currentUser.id, ["room"]);
 
   if (!user) {
     throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
   }
 
-  const room = await Room.findOne({ where: { code: roomCode } });
+  // const room = await Room.findOne({ where: { code: roomCode } });
+
+  const room = await roomRepository.findByCode(roomCode);
 
   if (!room) {
     throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);

@@ -2,12 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import * as paymentService from "../services/payment";
 
 import crypto from "crypto";
-import Transaction from "../entity/Transaction";
-import { TransactionStatus } from "../enums/Transaction";
-import PaystackAuthorization from "../entity/PaystackAuthorization";
-import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import config from "config";
-import HttpException from "../utils/exceptions/http.exception";
 
 export const charge = async (
   req: Request,
@@ -18,7 +13,7 @@ export const charge = async (
   const currentUser = req.user;
 
   try {
-    const response = await paymentService.chargeUser(code, currentUser);
+    const response = await paymentService.chargeUser(code, currentUser!);
 
     res.send(response);
   } catch (error) {
@@ -40,7 +35,7 @@ export const webhook = async (
     if (hash == req.headers["x-paystack-signature"]) {
       // Retrieve the request's body
       const event = req.body;
-      // console.log(event);
+      console.log(event);
       // Do something with event
       if (event.event === "charge.success") {
         await paymentService.handleChargeSuccess(event);
@@ -51,7 +46,6 @@ export const webhook = async (
     res.send(200);
     // res.sendStatus(200);
   } catch (error) {
-    res.send(500);
     // next(error);
   }
 };

@@ -9,6 +9,7 @@ export const createRoom = async (
   next: NextFunction,
 ): Promise<void> => {
   const currentUser = req.user;
+
   try {
     const { name, amountPerPerson, maxNumberOfPeople, billingDate } = req.body;
 
@@ -19,14 +20,17 @@ export const createRoom = async (
         maxNumberOfPeople,
         billingDate,
       },
-      currentUser,
+      currentUser!,
     );
 
     res.status(201).json({
       status: ResponseStatus.SUCCESS,
       message: "New room created successfully",
       data: {
-        newRoom,
+        newRoom: {
+          code: newRoom.code,
+          name: newRoom.name, // CHANGE THE RETURN VALUES LATER
+        },
       },
     });
   } catch (error) {
@@ -43,7 +47,7 @@ export const joinRoom = async (
   const currentUser = req.user;
 
   try {
-    await roomService.joinRoom(roomCode, currentUser);
+    await roomService.joinRoom(roomCode, currentUser!);
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
       message: "Joined room successfully",
@@ -104,7 +108,11 @@ export const updateRoom = async (
     const { id } = req.params;
     const currentUser = req.user;
 
-    const updatedRoom = await roomService.updateRoom(id, req.body, currentUser);
+    const updatedRoom = await roomService.updateRoom(
+      id,
+      req.body,
+      currentUser!,
+    );
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
@@ -125,7 +133,7 @@ export const getMyRooms = async (
 ): Promise<void> => {
   const currentUser = req.user;
   try {
-    const myRooms = await roomService.getMyRooms(currentUser);
+    const myRooms = await roomService.getMyRooms(currentUser!);
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
@@ -148,7 +156,7 @@ export const leaveRoom = async (
   const currentUser = req.user;
 
   try {
-    await roomService.leaveRoom(roomCode, currentUser);
+    await roomService.leaveRoom(roomCode, currentUser!);
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
