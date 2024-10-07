@@ -12,7 +12,6 @@ class PaystackAuthorizationRepository {
     );
   }
 
-  // Create a new Paystack Authorization
   public async create(
     authorizationData: Partial<IPaystackAuthorization>,
   ): Promise<IPaystackAuthorization> {
@@ -21,7 +20,6 @@ class PaystackAuthorizationRepository {
     return this.paystackAuthorizationRepository.save(newAuthorization);
   }
 
-  // Find authorization by ID
   public async findById(
     authorizationId: string,
   ): Promise<IPaystackAuthorization | null> {
@@ -30,7 +28,6 @@ class PaystackAuthorizationRepository {
     });
   }
 
-  // Find authorization by signature
   public async findBySignature(
     signature: string,
   ): Promise<IPaystackAuthorization | null> {
@@ -39,7 +36,6 @@ class PaystackAuthorizationRepository {
     });
   }
 
-  // Find authorization by user ID
   public async findByUserId(
     userId: string,
   ): Promise<IPaystackAuthorization | null> {

@@ -10,20 +10,17 @@ class RoomRepository {
     this.roomRepository = AppDataSource.getRepository(Room);
   }
 
-  // Create a new room
   public async create(roomData: Partial<IRoom>): Promise<IRoom> {
     const newRoom = this.roomRepository.create(roomData);
     return this.roomRepository.save(newRoom);
   }
 
-  // Find room by code
   public async findByCode(code: string): Promise<IRoom | null> {
     return this.roomRepository.findOne({
       where: { code },
     });
   }
 
-  // Find room by ID
   public async findById(
     roomId: string,
     relations: string[] = [],
@@ -39,7 +36,6 @@ class RoomRepository {
     return this.roomRepository.save(room);
   }
 
-  // Get all rooms
   public async findAll(): Promise<IRoom[]> {
     return this.roomRepository.find();
   }

@@ -1,7 +1,6 @@
 - wrap charge and chargeJob service into function
 - handle axios error - socket hang up
 - a card can be used in two different rooms so i cant return based off the unique signature, except i am checking the room the signature belongs to?
-- how to handle returns in webhook event
 - handle all types propery esp those coming from paystack that return any
 - create a function to handle all the findOne and returns 404 error, i am guessing that is what the repository is for
-- use repository
+- handle validation

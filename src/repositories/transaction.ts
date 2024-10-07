@@ -10,7 +10,6 @@ class TransactionRepository {
     this.transactionRepository = AppDataSource.getRepository(Transaction);
   }
 
-  // Create a new transaction
   public async create(
     transactionData: Partial<ITransaction>,
   ): Promise<ITransaction> {
