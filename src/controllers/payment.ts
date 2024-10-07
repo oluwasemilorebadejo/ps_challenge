@@ -51,6 +51,7 @@ export const webhook = async (
     res.send(200);
     // res.sendStatus(200);
   } catch (error) {
-    next(error);
+    res.send(500);
+    // next(error);
   }
 };

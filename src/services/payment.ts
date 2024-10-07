@@ -72,9 +72,6 @@ export const chargeUser = async (
   );
 
   return response.data;
-  // } catch (error) {
-  //   console.error(error, "----------ERR0R----------");
-  // }
 };
 
 export const handleChargeSuccess = async (event: any): Promise<void> => {
@@ -131,7 +128,7 @@ export const handleChargeSuccess = async (event: any): Promise<void> => {
 
 const chargeUserJob = async (
   roomCode: string,
-  currentUser: IUser,
+  currentUser: IUser | undefined,
   authorization: IPaystackAuthorization,
 ) => {
   const user = await User.findOne({
@@ -209,12 +206,11 @@ const chargeUserJob = async (
 export const runDailyBilling = async (): Promise<void> => {
   const today = new Date().getDate();
 
-  // Find all rooms where today is the billingDate
   const roomsToBill = await Room.find({
     where: { billingDate: today },
     relations: {
       owner: true,
-    }, // Ensure you fetch the owner details
+    },
   });
 
   // console.log(roomsToBill, "--rooms to bill--");
@@ -222,10 +218,10 @@ export const runDailyBilling = async (): Promise<void> => {
   for (const room of roomsToBill) {
     // Fetch all contributors (users) of the room
     const contributors = await User.find({
-      where: { room: { id: room.id } },
       relations: {
         room: true,
       },
+      where: { room: { id: room.id } },
     });
 
     // console.log(contributors, "--contributors--");
@@ -244,9 +240,6 @@ export const runDailyBilling = async (): Promise<void> => {
         continue; // Skip the user if no authorization is found
       }
 
-      console.log(authorization, "---authorization---");
-
-      // Call the chargeUserJob function with roomCode, currentUser, and authorization
       await chargeUserJob(room.code, contributor, authorization);
     }
   }

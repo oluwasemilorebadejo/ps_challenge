@@ -23,15 +23,15 @@ export const createRoom = async (
   data: IRoom,
   owner: IUser | undefined,
 ): Promise<IRoom> => {
-  if (!owner) {
-    throw new HttpException(
-      "Owner is required to create a room",
-      HttpStatusCode.NOT_FOUND,
-    );
-  }
+  // if (!owner) {
+  //   throw new HttpException(
+  //     "Owner is required to create a room",
+  //     HttpStatusCode.NOT_FOUND,
+  //   );
+  // }
 
   const ownerUser = await User.findOne({
-    where: { id: owner.id },
+    where: { id: owner?.id },
     relations: {
       room: true,
     },
@@ -87,7 +87,7 @@ export const joinRoom = async (
 
   if (user.room.some((r) => r.id === room.id)) {
     throw new HttpException(
-      "User is already in this room",
+      "You are already a member of this room",
       HttpStatusCode.BAD_REQUEST,
     );
   }
@@ -144,12 +144,22 @@ export const updateRoom = async (
     throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
   }
 
-  if (!currentUser) {
+  // if (!currentUser) {
+  //   throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+  // }
+
+  const user = await User.findOne({
+    where: {
+      id: currentUser?.id,
+    },
+  });
+
+  if (!user) {
     throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
   }
 
   // ONLY THE OWNER OF THE ROOM CAN MAKE CHANGES TO THEIR ROOM
-  if (room.owner.id !== currentUser.id) {
+  if (room.owner.id !== user.id) {
     throw new HttpException(
       "Access denied. You are not allowed to perform this operation",
       HttpStatusCode.FORBIDDEN,
@@ -226,13 +236,10 @@ export const leaveRoom = async (
     );
   }
 
-  // Remove the room from the user's rooms list
   user.room = user.room.filter((userRoom) => userRoom.id !== room.id);
 
-  // Decrease the number of people in the room
   room.numberOfPeople = room.numberOfPeople > 1 ? room.numberOfPeople - 1 : 0;
 
-  // Save both the user and the room entities
   await user.save();
   await room.save();
 };
