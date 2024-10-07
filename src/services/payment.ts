@@ -5,12 +5,13 @@ import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import User from "../entity/User";
 import Room from "../entity/Room";
 import { IUser } from "../interfaces/User";
-import Transaction from "../entity/Transaction";
 import { TransactionStatus, TransactionType } from "../enums/Transaction";
 import PaystackAuthorization from "../entity/PaystackAuthorization";
 import { IPaystackAuthorization } from "../interfaces/PaystackAuthorization";
 import userRepository from "../repositories/user";
 import roomRepository from "../repositories/room";
+import transactionRepository from "../repositories/transaction";
+import paystackAuthorizationRepository from "../repositories/paystackAuthorization";
 
 export const chargeUser = async (
   roomCode: string,
@@ -21,8 +22,6 @@ export const chargeUser = async (
   if (!user) {
     throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
   }
-
-  // const room = await Room.findOne({ where: { code: roomCode } });
 
   const room = await roomRepository.findByCode(roomCode);
 
@@ -39,13 +38,13 @@ export const chargeUser = async (
       HttpStatusCode.FORBIDDEN,
     );
   }
-  const newTransaction = await Transaction.create({
+
+  const newTransaction = await transactionRepository.create({
     amount: room.amountPerPerson,
     user: user,
     type: TransactionType.INITIAL,
+    room: room,
   });
-
-  await newTransaction.save();
 
   const params = {
     email: user.email,
@@ -73,9 +72,9 @@ export const chargeUser = async (
 
 export const handleChargeSuccess = async (event: any): Promise<void> => {
   // 1. update transaction status to success and store the entire authorization
-  const updatedTransaction = await Transaction.findOne({
-    where: { id: event.data.reference },
-  });
+  const updatedTransaction = await transactionRepository.findById(
+    event.data.reference,
+  );
 
   if (!updatedTransaction) {
     throw new HttpException("Transaction not found", HttpStatusCode.NOT_FOUND);
@@ -83,13 +82,9 @@ export const handleChargeSuccess = async (event: any): Promise<void> => {
 
   updatedTransaction.status = TransactionStatus.SUCCESS;
 
-  await updatedTransaction.save();
+  await transactionRepository.save(updatedTransaction);
 
-  const user = await User.findOne({
-    where: {
-      email: event.data.customer.email,
-    },
-  });
+  const user = await userRepository.findByEmail(event.data.customer.email);
 
   if (!user) {
     throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
@@ -98,13 +93,14 @@ export const handleChargeSuccess = async (event: any): Promise<void> => {
   const authorization = event.data.authorization;
 
   // if authorization exists return
-  const existingAuthorization = await PaystackAuthorization.findOne({
-    where: { authorizationCode: authorization.authorization_code },
-  });
+  const existingAuthorization =
+    await paystackAuthorizationRepository.findBySignature(
+      authorization.signature,
+    );
 
   if (existingAuthorization) return;
 
-  const newPaystackAuthorization = PaystackAuthorization.create({
+  const newPaystackAuthorization = paystackAuthorizationRepository.create({
     authorizationCode: authorization.authorization_code,
     bank: authorization.bank,
     bin: authorization.bin,
@@ -119,8 +115,6 @@ export const handleChargeSuccess = async (event: any): Promise<void> => {
     transaction: updatedTransaction,
     user: user,
   });
-
-  await newPaystackAuthorization.save();
 };
 
 const chargeUserJob = async (
@@ -133,8 +127,6 @@ const chargeUserJob = async (
   if (!user) {
     throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
   }
-
-  // const room = await Room.findOne({ where: { code: roomCode } });
 
   const room = await roomRepository.findByCode(roomCode);
 
@@ -163,12 +155,12 @@ const chargeUserJob = async (
     );
   }
 
-  const newTransaction = await Transaction.create({
+  const newTransaction = await transactionRepository.create({
     amount: room.amountPerPerson,
     user: user,
     type: TransactionType.RECURRING,
+    room: room,
   });
-  await newTransaction.save();
 
   const params = {
     email: user.email,

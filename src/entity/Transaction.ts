@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { TransactionStatus, TransactionType } from "../enums/Transaction";
 import User from "./User";
+import Room from "./Room";
 
 @Entity()
 export default class Transaction extends BaseEntity {
@@ -34,4 +35,8 @@ export default class Transaction extends BaseEntity {
   @ManyToOne(() => User)
   @JoinColumn()
   user!: User;
+
+  @ManyToOne(() => Room)
+  @JoinColumn()
+  room!: Room;
 }

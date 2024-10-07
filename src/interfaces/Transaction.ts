@@ -1,4 +1,5 @@
 import { TransactionStatus, TransactionType } from "../enums/Transaction";
+import { IRoom } from "./Room";
 import { IUser } from "./User";
 
 export interface ITransaction {
@@ -8,4 +9,5 @@ export interface ITransaction {
   type: TransactionType;
   createdAt: Date;
   user: IUser;
+  room: IRoom;
 }
