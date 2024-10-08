@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { ResponseStatus } from "../enums/ResponseStatus";
 import AuthService from "../services/auth";
 import config from "config";
+import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
 
 class AuthController {
   // Method to handle login
@@ -10,13 +11,9 @@ class AuthController {
     res: Response,
     next: NextFunction,
   ): Promise<void> {
-    const { email, password } = req.body;
-
     try {
-      const accessToken = await AuthService.login({
-        email,
-        password,
-      });
+      const loginUserDto: LoginUserDto = req.body;
+      const accessToken = await AuthService.login(loginUserDto);
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
@@ -43,19 +40,10 @@ class AuthController {
     res: Response,
     next: NextFunction,
   ): Promise<void> {
-    const { firstName, lastName, email, age, password, address, role } =
-      req.body;
+    const createUserDto: CreateUserDto = req.body;
 
     try {
-      await AuthService.signup({
-        firstName,
-        lastName,
-        email,
-        age,
-        password,
-        address,
-        role,
-      });
+      await AuthService.signup(createUserDto);
 
       res.status(201).json({
         status: ResponseStatus.SUCCESS,

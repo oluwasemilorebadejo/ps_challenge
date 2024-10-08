@@ -3,6 +3,8 @@ import express, { Router } from "express";
 import AuthMiddleware from "../../middleware/auth";
 import { UserRole } from "../../enums/User";
 import RoomController from "../../controllers/room";
+import { validateDto } from "../../middleware/validator";
+import { CreateRoomDto, UpdateRoomDto } from "../../dtos/room.dto";
 
 const router: Router = express.Router();
 
@@ -19,9 +21,11 @@ router.post("/leave/:code", RoomController.leaveRoom);
 
 router.use(AuthMiddleware.restrictTo(UserRole.COLLECTOR, UserRole.ADMIN));
 
-router.route("/:id").patch(RoomController.updateRoom);
+router
+  .route("/:id")
+  .patch(validateDto(UpdateRoomDto), RoomController.updateRoom);
 
-router.route("/").post(RoomController.createRoom);
+router.route("/").post(validateDto(CreateRoomDto), RoomController.createRoom);
 
 router.use(AuthMiddleware.restrictTo(UserRole.ADMIN));
 

@@ -1,10 +1,10 @@
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import config from "config";
-import { CreateUser, ILogin } from "../interfaces/User";
 import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import userRepository from "../repositories/user";
+import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
 
 class AuthService {
   private async hashPassword(password: string): Promise<string> {
@@ -22,10 +22,12 @@ class AuthService {
     return jwt.sign({ id: id }, config.get<string>("access_token_secret"));
   }
 
-  public async login(data: ILogin): Promise<string> {
-    const user = await userRepository.findByEmail(data.email);
+  public async login(data: LoginUserDto): Promise<string> {
+    const { email, password } = data;
 
-    if (!user || !(await this.comparePassword(data.password, user.password))) {
+    const user = await userRepository.findByEmail(email);
+
+    if (!user || !(await this.comparePassword(password, user.password))) {
       throw new HttpException(
         "Incorrect email or password",
         HttpStatusCode.UNAUTHORIZED,
@@ -36,8 +38,10 @@ class AuthService {
     return accessToken;
   }
 
-  public async signup(data: CreateUser): Promise<void> {
-    const existingUser = await userRepository.findByEmail(data.email);
+  public async signup(data: CreateUserDto): Promise<void> {
+    const { email, password } = data;
+
+    const existingUser = await userRepository.findByEmail(email);
 
     if (existingUser) {
       throw new HttpException(
@@ -46,16 +50,11 @@ class AuthService {
       );
     }
 
-    const hashedPassword = await this.hashPassword(data.password);
+    const hashedPassword = await this.hashPassword(password);
 
     const newUserData = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
+      ...data,
       password: hashedPassword,
-      age: data.age,
-      address: data.address,
-      role: data.role,
     };
 
     await userRepository.create(newUserData);

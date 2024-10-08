@@ -4,6 +4,7 @@ import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import userRepository from "../repositories/user";
 import roomRepository from "../repositories/room";
+import { CreateRoomDto, UpdateRoomDto } from "../dtos/room.dto";
 
 function generateRoomCode(): string {
   let code = "";
@@ -23,7 +24,7 @@ class RoomService {
   /**
    * createRoom
    */
-  public async createRoom(data: Partial<IRoom>, owner: IUser): Promise<IRoom> {
+  public async createRoom(data: CreateRoomDto, owner: IUser): Promise<IRoom> {
     const ownerUser = await userRepository.findById(owner.id, ["room"]);
 
     if (!ownerUser) {
@@ -31,11 +32,8 @@ class RoomService {
     }
 
     const newRoom = await roomRepository.create({
+      ...data,
       code: generateRoomCode(),
-      name: data.name,
-      amountPerPerson: data.amountPerPerson,
-      maxNumberOfPeople: data.maxNumberOfPeople,
-      billingDate: data.billingDate,
       joinedAt: new Date(),
       owner: ownerUser,
     });
@@ -113,7 +111,7 @@ class RoomService {
    */
   public async updateRoom(
     roomId: string,
-    data: Partial<IRoom>,
+    data: UpdateRoomDto,
     currentUser: IUser,
   ): Promise<IRoom> {
     const room = await roomRepository.findById(roomId, ["owner"]);
@@ -136,9 +134,7 @@ class RoomService {
       );
     }
 
-    const { code, ...allowedUpdates } = data;
-
-    Object.assign(room, allowedUpdates);
+    Object.assign(room, data);
 
     await roomRepository.save(room);
 

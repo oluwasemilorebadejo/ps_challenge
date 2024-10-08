@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import RoomService from "../services/room";
 import { ResponseStatus } from "../enums/ResponseStatus";
+import { CreateRoomDto, UpdateRoomDto } from "../dtos/room.dto";
 
 class RoomController {
   // Method to create a room
@@ -10,20 +11,10 @@ class RoomController {
     next: NextFunction,
   ): Promise<void> {
     const currentUser = req.user;
+    const createRoomDto: CreateRoomDto = req.body;
 
     try {
-      const { name, amountPerPerson, maxNumberOfPeople, billingDate } =
-        req.body;
-
-      const newRoom = await RoomService.createRoom(
-        {
-          name,
-          amountPerPerson,
-          maxNumberOfPeople,
-          billingDate,
-        },
-        currentUser!,
-      );
+      const newRoom = await RoomService.createRoom(createRoomDto, currentUser!);
 
       res.status(201).json({
         status: ResponseStatus.SUCCESS,
@@ -110,13 +101,15 @@ class RoomController {
     res: Response,
     next: NextFunction,
   ): Promise<void> {
+    const updateRoomDto: UpdateRoomDto = req.body;
+
     try {
       const { id } = req.params;
       const currentUser = req.user;
 
       const updatedRoom = await RoomService.updateRoom(
         id,
-        req.body,
+        updateRoomDto,
         currentUser!,
       );
 

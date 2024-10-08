@@ -4,7 +4,7 @@ class HttpException extends Error {
   public message: string;
   public statusCode: HttpStatusCode;
   public status: string;
-  public isOperational: boolean = true;
+  public isOperational: boolean;
 
   constructor(message: string, statusCode: number) {
     super(message);
