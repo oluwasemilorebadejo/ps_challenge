@@ -1,21 +1,22 @@
 import express, { Router } from "express";
-import { authorize, restrictTo } from "../../middleware/auth";
+import AuthMiddleware from "../../middleware/auth";
 import { UserRole } from "../../enums/User";
-import * as userController from "../../controllers/user";
+// import * as userController from "../../controllers/user";
+import UserController from "../../controllers/user";
 
 const router: Router = express.Router();
 
-router.use(authorize);
+router.use(AuthMiddleware.authorize);
 
-router.route("/me").get(userController.getMe, userController.getUser);
+router.route("/me").get(UserController.getMe, UserController.getUser);
 
-router.use(restrictTo(UserRole.ADMIN));
+router.use(AuthMiddleware.restrictTo(UserRole.ADMIN));
 
-router.route("/").get(userController.getAllUsers);
+router.route("/").get(UserController.getAllUsers);
 
 router
   .route("/:id")
-  .get(userController.getUser)
-  .patch(userController.updateUser);
+  .get(UserController.getUser)
+  .patch(UserController.updateUser);
 
 export default router;

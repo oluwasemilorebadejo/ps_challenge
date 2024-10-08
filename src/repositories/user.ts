@@ -38,6 +38,19 @@ class UserRepository {
   public async findAll(): Promise<IUser[]> {
     return this.userRepository.find();
   }
+
+  public async findUsersByRoom(roomId: string): Promise<IUser[]> {
+    return this.userRepository.find({
+      relations: {
+        room: true,
+      },
+      where: {
+        room: {
+          id: roomId,
+        },
+      },
+    });
+  }
 }
 
 export default new UserRepository();

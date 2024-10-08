@@ -1,29 +1,30 @@
 import express, { Router } from "express";
-import * as roomController from "../../controllers/room";
-import * as authMiddleware from "../../middleware/auth";
+// import * as roomController from "../../controllers/room";
+import AuthMiddleware from "../../middleware/auth";
 import { UserRole } from "../../enums/User";
+import RoomController from "../../controllers/room";
 
 const router: Router = express.Router();
 
 // I THINK ANYONE CAN VIEW  ROOM INFOMATION. THIS IS NEEDED SO USERS CAN SEE THE DETAILS OF THE ROOM BEFORE JOINING
-router.route("/:code").get(roomController.getRoom);
+router.route("/:code").get(RoomController.getRoom);
 
-router.use(authMiddleware.authorize);
+router.use(AuthMiddleware.authorize);
 
-router.get("/user/me", roomController.getMyRooms); // come back to rename
+router.get("/user/me", RoomController.getMyRooms); // come back to rename
 
-router.post("/join/:code", roomController.joinRoom);
+router.post("/join/:code", RoomController.joinRoom);
 
-router.post("/leave/:code", roomController.leaveRoom);
+router.post("/leave/:code", RoomController.leaveRoom);
 
-router.use(authMiddleware.restrictTo(UserRole.COLLECTOR, UserRole.ADMIN));
+router.use(AuthMiddleware.restrictTo(UserRole.COLLECTOR, UserRole.ADMIN));
 
-router.route("/:id").patch(roomController.updateRoom);
+router.route("/:id").patch(RoomController.updateRoom);
 
-router.route("/").post(roomController.createRoom);
+router.route("/").post(RoomController.createRoom);
 
-router.use(authMiddleware.restrictTo(UserRole.ADMIN));
+router.use(AuthMiddleware.restrictTo(UserRole.ADMIN));
 
-router.get("/", roomController.getAllRooms);
+router.get("/", RoomController.getAllRooms);
 
 export default router;

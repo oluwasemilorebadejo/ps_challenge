@@ -10,7 +10,9 @@ import errorMiddleware from "./middleware/error";
 import config from "config";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import * as paymentController from "./controllers/payment";
+// import * as paymentController from "./controllers/payment";
+import PaymentController from "./controllers/payment";
+
 import initializeCronJobs from "./cron";
 
 const app: Application = express();
@@ -36,7 +38,7 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.post("/webhook", paymentController.webhook);
+app.post("/webhook", PaymentController.webhook);
 
 initializeCronJobs();
 
