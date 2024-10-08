@@ -31,6 +31,16 @@ class RoomRepository {
     });
   }
 
+  public async findByBillingDate(
+    billingDate: number,
+    relations: string[] = [],
+  ): Promise<IRoom[]> {
+    return this.roomRepository.find({
+      where: { billingDate },
+      relations: relations.length ? relations : undefined,
+    });
+  }
+
   // Save updates to the room
   public async save(room: IRoom): Promise<IRoom> {
     return this.roomRepository.save(room);

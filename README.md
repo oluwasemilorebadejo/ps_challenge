@@ -4,3 +4,4 @@
 - handle all types propery esp those coming from paystack that return any
 - create a function to handle all the findOne and returns 404 error, i am guessing that is what the repository is for
 - handle validation
+- complete refactoring

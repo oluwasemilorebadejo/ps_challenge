@@ -1,8 +1,8 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { ResponseStatus } from "../enums/ResponseStatus";
-import * as authService from "../services/auth";
+// import * as authService from "../services/auth";
+import AuthService from "../services/auth";
 import config from "config";
-import { IUser } from "../interfaces/User";
 
 export const login = async (
   req: Request,
@@ -12,7 +12,7 @@ export const login = async (
   const { email, password } = req.body;
 
   try {
-    const accessToken = await authService.login({
+    const accessToken = await AuthService.login({
       email,
       password,
     });
@@ -44,7 +44,7 @@ export const signup = async (
   const { firstName, lastName, email, age, password, address, role } = req.body;
 
   try {
-    const newUser = await authService.signup({
+    const newUser = await AuthService.signup({
       firstName,
       lastName,
       email,

@@ -19,168 +19,185 @@ function generateRoomCode(): string {
   return code;
 }
 
-export const createRoom = async (
-  data: Partial<IRoom>,
-  owner: IUser,
-): Promise<IRoom> => {
-  const ownerUser = await userRepository.findById(owner.id, ["room"]);
+class RoomService {
+  /**
+   * createRoom
+   */
+  public async createRoom(data: Partial<IRoom>, owner: IUser): Promise<IRoom> {
+    const ownerUser = await userRepository.findById(owner.id, ["room"]);
 
-  if (!ownerUser) {
-    throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
+    if (!ownerUser) {
+      throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
+    }
+
+    const newRoom = await roomRepository.create({
+      code: generateRoomCode(),
+      name: data.name,
+      amountPerPerson: data.amountPerPerson,
+      maxNumberOfPeople: data.maxNumberOfPeople,
+      billingDate: data.billingDate,
+      joinedAt: new Date(),
+      owner: ownerUser,
+    });
+
+    // Add the owner as a member of the room
+    ownerUser.room = [...(ownerUser.room || []), newRoom];
+    await userRepository.save(ownerUser);
+
+    return newRoom;
   }
 
-  const newRoom = await roomRepository.create({
-    code: generateRoomCode(),
-    name: data.name,
-    amountPerPerson: data.amountPerPerson,
-    maxNumberOfPeople: data.maxNumberOfPeople,
-    billingDate: data.billingDate,
-    joinedAt: new Date(),
-    owner: ownerUser,
-  });
+  /**
+   * joinRoom
+   */
+  public async joinRoom(code: string, currentUser: IUser): Promise<void> {
+    const room = await roomRepository.findByCode(code);
 
-  // Add the owner as a member of the room
-  ownerUser.room = [...(ownerUser.room || []), newRoom];
-  await userRepository.save(ownerUser);
+    if (!room) {
+      throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    }
 
-  return newRoom;
-};
+    const user = await userRepository.findById(currentUser.id, ["room"]);
 
-export const joinRoom = async (code: string, currentUser: IUser) => {
-  const room = await roomRepository.findByCode(code);
+    if (!user) {
+      throw new HttpException("User doesn't exist", HttpStatusCode.NOT_FOUND);
+    }
 
-  if (!room) {
-    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    if (room.numberOfPeople >= room.maxNumberOfPeople) {
+      throw new HttpException("Room is filled up", HttpStatusCode.BAD_REQUEST);
+    }
+
+    if (user.room.some((r) => r.id === room.id)) {
+      throw new HttpException(
+        "You are already a member of this room",
+        HttpStatusCode.BAD_REQUEST,
+      );
+    }
+
+    user.room = [...user.room, room];
+
+    await userRepository.save(user);
+
+    // THIS OPERATION CAN BE STOPPED IF USER SAVE FAILS
+
+    // Increment the number of people in the room
+    room.numberOfPeople += 1;
+
+    await roomRepository.save(room);
   }
 
-  const user = await userRepository.findById(currentUser.id, ["room"]);
+  /**
+   * getRooms
+   */
+  public async getRooms(): Promise<IRoom[]> {
+    const room = await roomRepository.findAll();
 
-  if (!user) {
-    throw new HttpException("User doesn't exist", HttpStatusCode.NOT_FOUND);
+    return room;
   }
 
-  if (room.numberOfPeople >= room.maxNumberOfPeople) {
-    throw new HttpException("Room is filled up", HttpStatusCode.BAD_REQUEST);
+  /**
+   * getRoom
+   */
+  public async getRoom(roomCode: string) {
+    const room = await roomRepository.findByCode(roomCode);
+
+    if (!room) {
+      throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    }
+
+    return room;
   }
 
-  if (user.room.some((r) => r.id === room.id)) {
-    throw new HttpException(
-      "You are already a member of this room",
-      HttpStatusCode.BAD_REQUEST,
-    );
+  /**
+   * updateRoom
+   */
+  public async updateRoom(
+    roomId: string,
+    data: Partial<IRoom>,
+    currentUser: IUser,
+  ): Promise<IRoom> {
+    const room = await roomRepository.findById(roomId, ["owner"]);
+
+    if (!room) {
+      throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    }
+
+    const user = await userRepository.findById(currentUser.id);
+
+    if (!user) {
+      throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+    }
+
+    // ONLY THE OWNER OF THE ROOM CAN MAKE CHANGES TO THEIR ROOM
+    if (room.owner.id !== user.id) {
+      throw new HttpException(
+        "Access denied. You are not allowed to perform this operation",
+        HttpStatusCode.FORBIDDEN,
+      );
+    }
+
+    const { code, ...allowedUpdates } = data;
+
+    Object.assign(room, allowedUpdates);
+
+    await roomRepository.save(room);
+
+    return room;
   }
 
-  user.room = [...user.room, room];
+  /**
+   * getMyRooms
+   */
+  public async getMyRooms(currentUser: IUser): Promise<IRoom[]> {
+    const user = await userRepository.findById(currentUser.id, ["room"]);
 
-  await userRepository.save(user);
+    if (!user) {
+      throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
+    }
 
-  // THIS OPERATION CAN BE STOPPED IF USER SAVE FAILS
+    if (user.room.length === 0) {
+      throw new HttpException(
+        "You havent joined any rooms. Kindly join one now!",
+        HttpStatusCode.NOT_FOUND,
+      );
+    }
 
-  // Increment the number of people in the room
-  room.numberOfPeople += 1;
-
-  await roomRepository.save(room);
-};
-
-export const getRooms = async () => {
-  const room = await roomRepository.findAll();
-
-  return room;
-};
-
-export const getRoom = async (roomCode: string) => {
-  const room = await roomRepository.findByCode(roomCode);
-
-  if (!room) {
-    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    return user.room;
   }
 
-  return room;
-};
+  /**
+   * leaveRoom
+   */
+  public async leaveRoom(code: string, currentUser: IUser): Promise<void> {
+    const room = await roomRepository.findByCode(code);
 
-export const updateRoom = async (
-  roomId: string,
-  data: Partial<IRoom>,
-  currentUser: IUser,
-) => {
-  const room = await roomRepository.findById(roomId, ["owner"]);
+    if (!room) {
+      throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    }
 
-  if (!room) {
-    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
+    const user = await userRepository.findById(currentUser.id, ["room"]);
+
+    if (!user) {
+      throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
+    }
+
+    // Check if the user is part of the room
+    const isUserInRoom = user.room.some((userRoom) => userRoom.id === room.id);
+
+    if (!isUserInRoom) {
+      throw new HttpException(
+        "You are not a member of this room",
+        HttpStatusCode.BAD_REQUEST,
+      );
+    }
+
+    user.room = user.room.filter((userRoom) => userRoom.id !== room.id);
+
+    room.numberOfPeople = room.numberOfPeople > 1 ? room.numberOfPeople - 1 : 0;
+
+    await userRepository.save(user);
+    await roomRepository.save(room);
   }
+}
 
-  const user = await userRepository.findById(currentUser.id);
-
-  if (!user) {
-    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
-  }
-
-  // ONLY THE OWNER OF THE ROOM CAN MAKE CHANGES TO THEIR ROOM
-  if (room.owner.id !== user.id) {
-    throw new HttpException(
-      "Access denied. You are not allowed to perform this operation",
-      HttpStatusCode.FORBIDDEN,
-    );
-  }
-
-  const { code, ...allowedUpdates } = data;
-
-  Object.assign(room, allowedUpdates);
-
-  await roomRepository.save(room);
-
-  return room;
-};
-
-export const getMyRooms = async (currentUser: IUser) => {
-  const user = await userRepository.findById(currentUser.id, ["room"]);
-
-  if (!user) {
-    throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
-  }
-
-  if (user.room.length === 0) {
-    throw new HttpException(
-      "You havent joined any rooms. Kindly join one now!",
-      HttpStatusCode.NOT_FOUND,
-    );
-  }
-
-  return user.room;
-};
-
-export const leaveRoom = async (code: string, currentUser: IUser) => {
-  // const room = await Room.findOne({
-  //   where: { code: code },
-  //   relations: { owner: true },
-  // });
-
-  const room = await roomRepository.findByCode(code);
-
-  if (!room) {
-    throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
-  }
-
-  const user = await userRepository.findById(currentUser.id, ["room"]);
-
-  if (!user) {
-    throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
-  }
-
-  // Check if the user is part of the room
-  const isUserInRoom = user.room.some((userRoom) => userRoom.id === room.id);
-
-  if (!isUserInRoom) {
-    throw new HttpException(
-      "You are not a member of this room",
-      HttpStatusCode.BAD_REQUEST,
-    );
-  }
-
-  user.room = user.room.filter((userRoom) => userRoom.id !== room.id);
-
-  room.numberOfPeople = room.numberOfPeople > 1 ? room.numberOfPeople - 1 : 0;
-
-  await userRepository.save(user);
-  await roomRepository.save(room);
-};
+export default new RoomService();

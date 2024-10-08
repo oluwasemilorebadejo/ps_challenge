@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import * as roomService from "../services/room";
+// import * as roomService from "../services/room";
+import RoomService from "../services/room";
 import { ResponseStatus } from "../enums/ResponseStatus";
-import { IRoom } from "../interfaces/Room";
 
 export const createRoom = async (
   req: Request,
@@ -13,7 +13,7 @@ export const createRoom = async (
   try {
     const { name, amountPerPerson, maxNumberOfPeople, billingDate } = req.body;
 
-    const newRoom = await roomService.createRoom(
+    const newRoom = await RoomService.createRoom(
       {
         name,
         amountPerPerson,
@@ -47,7 +47,7 @@ export const joinRoom = async (
   const currentUser = req.user;
 
   try {
-    await roomService.joinRoom(roomCode, currentUser!);
+    await RoomService.joinRoom(roomCode, currentUser!);
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
       message: "Joined room successfully",
@@ -63,7 +63,7 @@ export const getAllRooms = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const rooms = await roomService.getRooms();
+    const rooms = await RoomService.getRooms();
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
@@ -85,7 +85,7 @@ export const getRoom = async (
   try {
     const roomCode = req.params.code;
 
-    const room = await roomService.getRoom(roomCode);
+    const room = await RoomService.getRoom(roomCode);
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
@@ -108,7 +108,7 @@ export const updateRoom = async (
     const { id } = req.params;
     const currentUser = req.user;
 
-    const updatedRoom = await roomService.updateRoom(
+    const updatedRoom = await RoomService.updateRoom(
       id,
       req.body,
       currentUser!,
@@ -133,7 +133,7 @@ export const getMyRooms = async (
 ): Promise<void> => {
   const currentUser = req.user;
   try {
-    const myRooms = await roomService.getMyRooms(currentUser!);
+    const myRooms = await RoomService.getMyRooms(currentUser!);
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
@@ -156,7 +156,7 @@ export const leaveRoom = async (
   const currentUser = req.user;
 
   try {
-    await roomService.leaveRoom(roomCode, currentUser!);
+    await RoomService.leaveRoom(roomCode, currentUser!);
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,

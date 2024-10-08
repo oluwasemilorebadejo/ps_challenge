@@ -190,12 +190,14 @@ const chargeUserJob = async (
 export const runDailyBilling = async (): Promise<void> => {
   const today = new Date().getDate();
 
-  const roomsToBill = await Room.find({
-    where: { billingDate: today },
-    relations: {
-      owner: true,
-    },
-  });
+  // const roomsToBill = await Room.find({
+  //   where: { billingDate: today },
+  //   relations: {
+  //     owner: true,
+  //   },
+  // });
+
+  const roomsToBill = await roomRepository.findByBillingDate(today, ["owner"]);
 
   // console.log(roomsToBill, "--rooms to bill--");
 
@@ -213,9 +215,13 @@ export const runDailyBilling = async (): Promise<void> => {
     for (const contributor of contributors) {
       // console.log(contributor, "-contributor--");
       // Fetch the Paystack Authorization for the current user
-      const authorization = await PaystackAuthorization.findOne({
-        where: { user: { id: contributor.id } },
-      });
+      // const authorization = await PaystackAuthorization.findOne({
+      //   where: { user: { id: contributor.id } },
+      // });
+
+      const authorization = await paystackAuthorizationRepository.findByUserId(
+        contributor.id,
+      );
 
       if (!authorization) {
         console.warn(

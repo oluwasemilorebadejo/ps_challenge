@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import { ResponseStatus } from "../enums/ResponseStatus";
-import * as userService from "../services/user";
-import { IUser } from "../interfaces/User";
+// import * as userService from "../services/user";
+import UserService from "../services/user";
 import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
 
@@ -12,7 +12,7 @@ export const getAllUsers = async (
   next: NextFunction,
 ) => {
   try {
-    const users: IUser[] = await userService.getUsers();
+    const users = await UserService.getUsers();
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
@@ -34,7 +34,7 @@ export const getUser = async (
   try {
     const userId = req.params.id;
 
-    const user = await userService.getUser(userId);
+    const user = await UserService.getUser(userId);
 
     res.status(200).json({
       status: ResponseStatus.SUCCESS,
