@@ -1,9 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import { Inject, Service } from "typedi";
-import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import { ResponseStatus } from "../enums/ResponseStatus";
 import UserService from "../services/user";
-import HttpException from "../utils/exceptions/http.exception";
 
 @Service()
 class UserController {

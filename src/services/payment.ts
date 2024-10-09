@@ -166,17 +166,17 @@ class PaymentService {
       "owner",
     ]);
 
-    console.log(roomsToBill, "--rooms to bill---");
+    // console.log(roomsToBill, "--rooms to bill---");
 
     for (const room of roomsToBill) {
-      console.log(room, "--room---");
+      // console.log(room, "--room---");
 
       const contributors = await this.userRepository.findUsersByRoom(room.id);
 
-      console.log(contributors, "--contributors to bill---");
+      // console.log(contributors, "--contributors to bill---");
 
       for (const contributor of contributors) {
-        console.log(contributor, "--contributor to bill---");
+        // console.log(contributor, "--contributor to bill---");
 
         const authorization =
           await this.paystackAuthorizationRepository.findByUserId(
