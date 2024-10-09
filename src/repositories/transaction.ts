@@ -2,7 +2,9 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../data-source";
 import Transaction from "../entity/Transaction";
 import { ITransaction } from "../interfaces/Transaction";
+import { Service } from "typedi";
 
+@Service()
 class TransactionRepository {
   private transactionRepository: Repository<ITransaction>;
 
@@ -28,4 +30,4 @@ class TransactionRepository {
   }
 }
 
-export default new TransactionRepository();
+export default TransactionRepository;

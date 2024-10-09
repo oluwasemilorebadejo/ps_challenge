@@ -5,6 +5,9 @@ import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import userRepository from "../repositories/user";
 import roomRepository from "../repositories/room";
 import { CreateRoomDto, UpdateRoomDto } from "../dtos/room.dto";
+import { Inject, Service } from "typedi";
+import UserRepository from "../repositories/user";
+import RoomRepository from "../repositories/room";
 
 function generateRoomCode(): string {
   let code = "";
@@ -20,18 +23,25 @@ function generateRoomCode(): string {
   return code;
 }
 
+@Service()
 class RoomService {
+  constructor(
+    @Inject()
+    private readonly userRepository: UserRepository,
+    @Inject()
+    private readonly roomRepository: RoomRepository,
+  ) {}
   /**
    * createRoom
    */
   public async createRoom(data: CreateRoomDto, owner: IUser): Promise<IRoom> {
-    const ownerUser = await userRepository.findById(owner.id, ["room"]);
+    const ownerUser = await this.userRepository.findById(owner.id, ["room"]);
 
     if (!ownerUser) {
       throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
     }
 
-    const newRoom = await roomRepository.create({
+    const newRoom = await this.roomRepository.create({
       ...data,
       code: generateRoomCode(),
       joinedAt: new Date(),
@@ -40,7 +50,7 @@ class RoomService {
 
     // Add the owner as a member of the room
     ownerUser.room = [...(ownerUser.room || []), newRoom];
-    await userRepository.save(ownerUser);
+    await this.userRepository.save(ownerUser);
 
     return newRoom;
   }
@@ -49,13 +59,13 @@ class RoomService {
    * joinRoom
    */
   public async joinRoom(code: string, currentUser: IUser): Promise<void> {
-    const room = await roomRepository.findByCode(code);
+    const room = await this.roomRepository.findByCode(code);
 
     if (!room) {
       throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
     }
 
-    const user = await userRepository.findById(currentUser.id, ["room"]);
+    const user = await this.userRepository.findById(currentUser.id, ["room"]);
 
     if (!user) {
       throw new HttpException("User doesn't exist", HttpStatusCode.NOT_FOUND);
@@ -74,21 +84,21 @@ class RoomService {
 
     user.room = [...user.room, room];
 
-    await userRepository.save(user);
+    await this.userRepository.save(user);
 
     // THIS OPERATION CAN BE STOPPED IF USER SAVE FAILS
 
     // Increment the number of people in the room
     room.numberOfPeople += 1;
 
-    await roomRepository.save(room);
+    await this.roomRepository.save(room);
   }
 
   /**
    * getRooms
    */
   public async getRooms(): Promise<IRoom[]> {
-    const room = await roomRepository.findAll();
+    const room = await this.roomRepository.findAll();
 
     return room;
   }
@@ -97,7 +107,7 @@ class RoomService {
    * getRoom
    */
   public async getRoom(roomCode: string) {
-    const room = await roomRepository.findByCode(roomCode);
+    const room = await this.roomRepository.findByCode(roomCode);
 
     if (!room) {
       throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
@@ -114,13 +124,13 @@ class RoomService {
     data: UpdateRoomDto,
     currentUser: IUser,
   ): Promise<IRoom> {
-    const room = await roomRepository.findById(roomId, ["owner"]);
+    const room = await this.roomRepository.findById(roomId, ["owner"]);
 
     if (!room) {
       throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
     }
 
-    const user = await userRepository.findById(currentUser.id);
+    const user = await this.userRepository.findById(currentUser.id);
 
     if (!user) {
       throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
@@ -136,7 +146,7 @@ class RoomService {
 
     Object.assign(room, data);
 
-    await roomRepository.save(room);
+    await this.roomRepository.save(room);
 
     return room;
   }
@@ -145,7 +155,7 @@ class RoomService {
    * getMyRooms
    */
   public async getMyRooms(currentUser: IUser): Promise<IRoom[]> {
-    const user = await userRepository.findById(currentUser.id, ["room"]);
+    const user = await this.userRepository.findById(currentUser.id, ["room"]);
 
     if (!user) {
       throw new HttpException("User doesnt exist", HttpStatusCode.NOT_FOUND);
@@ -165,13 +175,13 @@ class RoomService {
    * leaveRoom
    */
   public async leaveRoom(code: string, currentUser: IUser): Promise<void> {
-    const room = await roomRepository.findByCode(code);
+    const room = await this.roomRepository.findByCode(code);
 
     if (!room) {
       throw new HttpException("Room not found", HttpStatusCode.NOT_FOUND);
     }
 
-    const user = await userRepository.findById(currentUser.id, ["room"]);
+    const user = await this.userRepository.findById(currentUser.id, ["room"]);
 
     if (!user) {
       throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
@@ -191,9 +201,9 @@ class RoomService {
 
     room.numberOfPeople = room.numberOfPeople > 1 ? room.numberOfPeople - 1 : 0;
 
-    await userRepository.save(user);
-    await roomRepository.save(room);
+    await this.userRepository.save(user);
+    await this.roomRepository.save(room);
   }
 }
 
-export default new RoomService();
+export default RoomService;

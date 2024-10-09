@@ -1,17 +1,24 @@
 import { Response, Request, NextFunction } from "express";
+import { Inject, Service } from "typedi";
+import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import { ResponseStatus } from "../enums/ResponseStatus";
 import UserService from "../services/user";
 import HttpException from "../utils/exceptions/http.exception";
-import { StatusCodes as HttpStatusCode } from "http-status-codes";
 
+@Service()
 class UserController {
-  public async getAllUsers(
+  constructor(
+    @Inject()
+    private readonly userService: UserService,
+  ) {}
+
+  public getAllUsers = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
-      const users = await UserService.getUsers();
+      const users = await this.userService.getUsers();
 
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
@@ -23,17 +30,17 @@ class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async getUser(
+  public getUser = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const userId = req.params.id;
 
-      const user = await UserService.getUser(userId);
+      const user = await this.userService.getUser(userId);
 
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
@@ -45,47 +52,43 @@ class UserController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async updateUser(
+  public getMe = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  public async getMe(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
-    try {
-      if (req.user?.id) {
-        req.params.id = req.user.id;
-      } else {
-        throw new HttpException("User ID is missing", HttpStatusCode.NOT_FOUND);
-      }
+      await this.userService.getMe(req);
 
       next();
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async deleteUser(
+  public updateUser = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
     } catch (error) {
       next(error);
     }
-  }
+  };
+
+  public deleteUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
-export default new UserController();
+export default UserController;

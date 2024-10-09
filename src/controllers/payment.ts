@@ -1,30 +1,37 @@
 import { Request, Response, NextFunction } from "express";
-import PaymentService from "../services/payment";
+import { Inject, Service } from "typedi";
 import crypto from "crypto";
 import config from "config";
 
+import PaymentService from "../services/payment";
+@Service()
 class PaymentController {
-  public async charge(
+  constructor(
+    @Inject()
+    private readonly paymentService: PaymentService,
+  ) {}
+
+  public charge = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const code = req.params.roomCode;
     const currentUser = req.user;
 
     try {
-      const response = await PaymentService.chargeUser(code, currentUser!);
+      const response = await this.paymentService.chargeUser(code, currentUser!);
       res.send(response);
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async webhook(
+  public webhook = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       // Validate event
       const hash = crypto
@@ -35,11 +42,11 @@ class PaymentController {
       if (hash === req.headers["x-paystack-signature"]) {
         // Retrieve the request's body
         const event = req.body;
-        console.log(event);
+        // console.log(event);
 
         // Process event if it's a successful charge
         if (event.event === "charge.success") {
-          await PaymentService.handleChargeSuccess(event);
+          await this.paymentService.handleChargeSuccess(event);
         }
       }
 
@@ -49,7 +56,7 @@ class PaymentController {
       console.error(error);
       next(error);
     }
-  }
+  };
 }
 
-export default new PaymentController();
+export default PaymentController;

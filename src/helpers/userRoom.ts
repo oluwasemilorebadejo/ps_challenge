@@ -1,8 +1,11 @@
 import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
-import userRepository from "../repositories/user";
-import roomRepository from "../repositories/room";
 import { IUser } from "../interfaces/User";
+import UserRepository from "../repositories/user";
+import RoomRepository from "../repositories/room";
+
+const userRepository = new UserRepository();
+const roomRepository = new RoomRepository();
 
 export const fetchUserAndRoom = async (
   roomCode: string,

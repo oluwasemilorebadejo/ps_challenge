@@ -1,18 +1,26 @@
 import { Request, Response, NextFunction } from "express";
+import { Inject, Service } from "typedi";
+import config from "config";
+
 import { ResponseStatus } from "../enums/ResponseStatus";
 import AuthService from "../services/auth";
-import config from "config";
 import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
 
+@Service()
 class AuthController {
-  public async login(
+  constructor(
+    @Inject()
+    private readonly authService: AuthService,
+  ) {}
+
+  public login = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const loginUserDto: LoginUserDto = req.body;
-      const accessToken = await AuthService.login(loginUserDto);
+      const accessToken = await this.authService.login(loginUserDto);
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
@@ -31,17 +39,17 @@ class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async signup(
+  public signup = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const createUserDto: CreateUserDto = req.body;
 
     try {
-      await AuthService.signup(createUserDto);
+      await this.authService.signup(createUserDto);
 
       res.status(201).json({
         status: ResponseStatus.SUCCESS,
@@ -50,13 +58,13 @@ class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async logout(
+  public logout = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       res.clearCookie("accessToken").json({
         status: ResponseStatus.SUCCESS,
@@ -65,7 +73,7 @@ class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 
-export default new AuthController();
+export default AuthController;

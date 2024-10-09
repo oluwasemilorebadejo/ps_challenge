@@ -5,14 +5,28 @@ import { StatusCodes as HttpStatusCode } from "http-status-codes";
 import { IUser } from "../interfaces/User";
 import { TransactionStatus, TransactionType } from "../enums/Transaction";
 import { IPaystackAuthorization } from "../interfaces/PaystackAuthorization";
-import userRepository from "../repositories/user";
-import roomRepository from "../repositories/room";
-import transactionRepository from "../repositories/transaction";
 import paystackAuthorizationRepository from "../repositories/paystackAuthorization";
 import { fetchUserAndRoom } from "../helpers/userRoom";
 import { createTransaction } from "../helpers/transaction";
+import { Inject, Service } from "typedi";
+import UserRepository from "../repositories/user";
+import TransactionRepository from "../repositories/transaction";
+import RoomRepository from "../repositories/room";
+import PaystackAuthorizationRepository from "../repositories/paystackAuthorization";
 
+@Service()
 class PaymentService {
+  constructor(
+    @Inject()
+    private readonly userRepository: UserRepository,
+    @Inject()
+    private readonly transactionRepository: TransactionRepository,
+    @Inject()
+    private readonly roomRepository: RoomRepository,
+    @Inject()
+    private readonly paystackAuthorizationRepository: PaystackAuthorizationRepository,
+  ) {}
+
   public async chargeUser(
     roomCode: string,
     currentUser: IUser,
@@ -50,7 +64,7 @@ class PaymentService {
   }
 
   public async handleChargeSuccess(event: any): Promise<void> {
-    const updatedTransaction = await transactionRepository.findById(
+    const updatedTransaction = await this.transactionRepository.findById(
       event.data.reference,
     );
 
@@ -62,9 +76,11 @@ class PaymentService {
     }
 
     updatedTransaction.status = TransactionStatus.SUCCESS;
-    await transactionRepository.save(updatedTransaction);
+    await this.transactionRepository.save(updatedTransaction);
 
-    const user = await userRepository.findByEmail(event.data.customer.email);
+    const user = await this.userRepository.findByEmail(
+      event.data.customer.email,
+    );
 
     if (!user) {
       throw new HttpException("User not found", HttpStatusCode.NOT_FOUND);
@@ -72,13 +88,13 @@ class PaymentService {
 
     const authorization = event.data.authorization;
     const existingAuthorization =
-      await paystackAuthorizationRepository.findBySignature(
+      await this.paystackAuthorizationRepository.findBySignature(
         authorization.signature,
       );
 
     if (existingAuthorization) return;
 
-    await paystackAuthorizationRepository.create({
+    await this.paystackAuthorizationRepository.create({
       authorizationCode: authorization.authorization_code,
       bank: authorization.bank,
       bin: authorization.bin,
@@ -102,7 +118,7 @@ class PaymentService {
   ): Promise<AxiosResponse> {
     const { user, room } = await fetchUserAndRoom(roomCode, currentUser);
 
-    const auth = await paystackAuthorizationRepository.findById(
+    const auth = await this.paystackAuthorizationRepository.findById(
       authorization.id,
     );
 
@@ -146,16 +162,26 @@ class PaymentService {
 
   public async runDailyBilling(): Promise<void> {
     const today = new Date().getDate();
-    const roomsToBill = await roomRepository.findByBillingDate(today, [
+    const roomsToBill = await this.roomRepository.findByBillingDate(today, [
       "owner",
     ]);
 
+    console.log(roomsToBill, "--rooms to bill---");
+
     for (const room of roomsToBill) {
-      const contributors = await userRepository.findUsersByRoom(room.id);
+      console.log(room, "--room---");
+
+      const contributors = await this.userRepository.findUsersByRoom(room.id);
+
+      console.log(contributors, "--contributors to bill---");
 
       for (const contributor of contributors) {
+        console.log(contributor, "--contributor to bill---");
+
         const authorization =
-          await paystackAuthorizationRepository.findByUserId(contributor.id);
+          await this.paystackAuthorizationRepository.findByUserId(
+            contributor.id,
+          );
 
         if (!authorization) {
           console.warn(
@@ -170,4 +196,4 @@ class PaymentService {
   }
 }
 
-export default new PaymentService();
+export default PaymentService;

@@ -1,9 +1,9 @@
-import transactionRepository from "../repositories/transaction";
-import Room from "../entity/Room";
-import User from "../entity/User";
+import TransactionRepository from "../repositories/transaction";
 import { IRoom } from "../interfaces/Room";
 import { IUser } from "../interfaces/User";
 import { TransactionType } from "../enums/Transaction";
+
+const transactionRepository = new TransactionRepository();
 
 export const createTransaction = async (
   amount: number,

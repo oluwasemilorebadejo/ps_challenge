@@ -2,7 +2,9 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../data-source";
 import User from "../entity/User";
 import { IUser } from "../interfaces/User";
+import { Service } from "typedi";
 
+@Service()
 class UserRepository {
   private userRepository: Repository<IUser>;
 
@@ -53,4 +55,4 @@ class UserRepository {
   }
 }
 
-export default new UserRepository();
+export default UserRepository;

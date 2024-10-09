@@ -14,5 +14,4 @@ AppDataSource.initialize()
 
 const server = app.listen(port, async (): Promise<void> => {
   console.log(`server started running at ${port}`);
-  console.log("LFG");
 });

@@ -3,10 +3,17 @@ import * as jwt from "jsonwebtoken";
 import config from "config";
 import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
-import userRepository from "../repositories/user";
 import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
+import { Inject, Service } from "typedi";
+import UserRepository from "../repositories/user";
 
+@Service()
 class AuthService {
+  constructor(
+    @Inject()
+    private readonly userRepository: UserRepository,
+  ) {}
+
   private async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
@@ -25,7 +32,7 @@ class AuthService {
   public async login(data: LoginUserDto): Promise<string> {
     const { email, password } = data;
 
-    const user = await userRepository.findByEmail(email);
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user || !(await this.comparePassword(password, user.password))) {
       throw new HttpException(
@@ -41,7 +48,7 @@ class AuthService {
   public async signup(data: CreateUserDto): Promise<void> {
     const { email, password } = data;
 
-    const existingUser = await userRepository.findByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
 
     if (existingUser) {
       throw new HttpException(
@@ -57,10 +64,10 @@ class AuthService {
       password: hashedPassword,
     };
 
-    await userRepository.create(newUserData);
+    await this.userRepository.create(newUserData);
 
     // send email functionality here
   }
 }
 
-export default new AuthService();
+export default AuthService;

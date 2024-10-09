@@ -2,7 +2,9 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../data-source";
 import PaystackAuthorization from "../entity/PaystackAuthorization";
 import { IPaystackAuthorization } from "../interfaces/PaystackAuthorization";
+import { Service } from "typedi";
 
+@Service()
 class PaystackAuthorizationRepository {
   private paystackAuthorizationRepository: Repository<IPaystackAuthorization>;
 
@@ -52,4 +54,4 @@ class PaystackAuthorizationRepository {
   }
 }
 
-export default new PaystackAuthorizationRepository();
+export default PaystackAuthorizationRepository;

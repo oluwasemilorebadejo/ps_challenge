@@ -1,19 +1,21 @@
 import express, { Application, Request, Response, NextFunction } from "express";
+import config from "config";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import { Container } from "typedi";
 
 import authRouter from "./routes/v1/auth";
 import userRouter from "./routes/v1/user";
 import roomRouter from "./routes/v1/room";
 import paymentRouter from "./routes/v1/payment";
-import HttpException from "./utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
+import HttpException from "./utils/exceptions/http.exception";
 import errorMiddleware from "./middleware/error";
-import config from "config";
-import morgan from "morgan";
-import cookieParser from "cookie-parser";
-// import * as paymentController from "./controllers/payment";
-import PaymentController from "./controllers/payment";
 
+import PaymentController from "./controllers/payment";
 import initializeCronJobs from "./cron";
+
+const paymentController = Container.get(PaymentController);
 
 const app: Application = express();
 
@@ -38,7 +40,7 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.post("/webhook", PaymentController.webhook);
+app.post("/webhook", paymentController.webhook);
 
 initializeCronJobs();
 

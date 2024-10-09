@@ -1,19 +1,30 @@
 import { Request, Response, NextFunction } from "express";
+import { Inject, Service } from "typedi";
+
 import RoomService from "../services/room";
 import { ResponseStatus } from "../enums/ResponseStatus";
 import { CreateRoomDto, UpdateRoomDto } from "../dtos/room.dto";
 
+@Service()
 class RoomController {
-  public async createRoom(
+  constructor(
+    @Inject()
+    private readonly roomService: RoomService,
+  ) {}
+
+  public createRoom = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const currentUser = req.user;
     const createRoomDto: CreateRoomDto = req.body;
 
     try {
-      const newRoom = await RoomService.createRoom(createRoomDto, currentUser!);
+      const newRoom = await this.roomService.createRoom(
+        createRoomDto,
+        currentUser!,
+      );
 
       res.status(201).json({
         status: ResponseStatus.SUCCESS,
@@ -28,18 +39,18 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  public async joinRoom(
+  public joinRoom = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const roomCode = req.params.code;
     const currentUser = req.user;
 
     try {
-      await RoomService.joinRoom(roomCode, currentUser!);
+      await this.roomService.joinRoom(roomCode, currentUser!);
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
         message: "Joined room successfully",
@@ -47,16 +58,15 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // Method to fetch all rooms
-  public async getAllRooms(
+  public getAllRooms = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
-      const rooms = await RoomService.getRooms();
+      const rooms = await this.roomService.getRooms();
 
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
@@ -68,18 +78,17 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // Method to fetch a single room by code
-  public async getRoom(
+  public getRoom = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const roomCode = req.params.code;
 
-      const room = await RoomService.getRoom(roomCode);
+      const room = await this.roomService.getRoom(roomCode);
 
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
@@ -91,21 +100,20 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // Method to update a room
-  public async updateRoom(
+  public updateRoom = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const updateRoomDto: UpdateRoomDto = req.body;
 
     try {
       const { id } = req.params;
       const currentUser = req.user;
 
-      const updatedRoom = await RoomService.updateRoom(
+      const updatedRoom = await this.roomService.updateRoom(
         id,
         updateRoomDto,
         currentUser!,
@@ -121,17 +129,16 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // Method to fetch rooms the current user belongs to
-  public async getMyRooms(
+  public getMyRooms = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const currentUser = req.user;
     try {
-      const myRooms = await RoomService.getMyRooms(currentUser!);
+      const myRooms = await this.roomService.getMyRooms(currentUser!);
 
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
@@ -143,19 +150,18 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  // Method to leave a room
-  public async leaveRoom(
+  public leaveRoom = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     const roomCode = req.params.code;
     const currentUser = req.user;
 
     try {
-      await RoomService.leaveRoom(roomCode, currentUser!);
+      await this.roomService.leaveRoom(roomCode, currentUser!);
 
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
@@ -164,7 +170,7 @@ class RoomController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 
-export default new RoomController();
+export default RoomController;

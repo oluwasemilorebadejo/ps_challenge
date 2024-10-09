@@ -2,7 +2,9 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../data-source";
 import Room from "../entity/Room";
 import { IRoom } from "../interfaces/Room";
+import { Service } from "typedi";
 
+@Service()
 class RoomRepository {
   private roomRepository: Repository<IRoom>;
 
@@ -51,4 +53,4 @@ class RoomRepository {
   }
 }
 
-export default new RoomRepository();
+export default RoomRepository;
