@@ -5,7 +5,6 @@ import HttpException from "../utils/exceptions/http.exception";
 import { StatusCodes as HttpStatusCode } from "http-status-codes";
 
 class UserController {
-  // Method to get all users (admin route)
   public async getAllUsers(
     req: Request,
     res: Response,
@@ -26,7 +25,6 @@ class UserController {
     }
   }
 
-  // Method to get a single user by ID
   public async getUser(
     req: Request,
     res: Response,
@@ -49,7 +47,6 @@ class UserController {
     }
   }
 
-  // Method to update a user
   public async updateUser(
     req: Request,
     res: Response,
@@ -61,7 +58,6 @@ class UserController {
     }
   }
 
-  // Method to get the current user's data (using their token)
   public async getMe(
     req: Request,
     res: Response,
@@ -69,18 +65,17 @@ class UserController {
   ): Promise<void> {
     try {
       if (req.user?.id) {
-        req.params.id = req.user.id; // Modify the request to include the user ID
+        req.params.id = req.user.id;
       } else {
         throw new HttpException("User ID is missing", HttpStatusCode.NOT_FOUND);
       }
 
-      next(); // Proceed to the next middleware or controller function
+      next();
     } catch (error) {
       next(error);
     }
   }
 
-  // Method to delete a user (admin route)
   public async deleteUser(
     req: Request,
     res: Response,

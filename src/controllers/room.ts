@@ -4,7 +4,6 @@ import { ResponseStatus } from "../enums/ResponseStatus";
 import { CreateRoomDto, UpdateRoomDto } from "../dtos/room.dto";
 
 class RoomController {
-  // Method to create a room
   public async createRoom(
     req: Request,
     res: Response,
@@ -31,7 +30,6 @@ class RoomController {
     }
   }
 
-  // Method to join a room
   public async joinRoom(
     req: Request,
     res: Response,

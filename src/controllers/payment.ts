@@ -4,7 +4,6 @@ import crypto from "crypto";
 import config from "config";
 
 class PaymentController {
-  // Method to charge a user
   public async charge(
     req: Request,
     res: Response,
@@ -21,7 +20,6 @@ class PaymentController {
     }
   }
 
-  // Method to handle the Paystack webhook
   public async webhook(
     req: Request,
     res: Response,

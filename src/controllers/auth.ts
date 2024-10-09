@@ -5,7 +5,6 @@ import config from "config";
 import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
 
 class AuthController {
-  // Method to handle login
   public async login(
     req: Request,
     res: Response,
@@ -34,7 +33,6 @@ class AuthController {
     }
   }
 
-  // Method to handle signup
   public async signup(
     req: Request,
     res: Response,
@@ -54,7 +52,6 @@ class AuthController {
     }
   }
 
-  // Method to handle logout
   public async logout(
     req: Request,
     res: Response,
