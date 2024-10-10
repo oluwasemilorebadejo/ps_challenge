@@ -39,7 +39,7 @@ export default class User extends BaseEntity {
   @Column({ type: "boolean", default: false })
   verified!: boolean;
 
-  @Column({ type: "enum", enum: UserRole })
+  @Column({ type: "enum", enum: UserRole, default: UserRole.USER })
   role!: UserRole;
 
   @Column({ type: "boolean", default: true, nullable: false })

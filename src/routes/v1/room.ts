@@ -22,7 +22,7 @@ router.post("/join/:code", roomController.joinRoom);
 
 router.post("/leave/:code", roomController.leaveRoom);
 
-router.use(AuthMiddleware.restrictTo(UserRole.COLLECTOR, UserRole.ADMIN));
+router.use(AuthMiddleware.restrictTo(UserRole.USER, UserRole.ADMIN));
 
 router
   .route("/:id")
