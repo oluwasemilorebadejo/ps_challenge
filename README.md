@@ -1,6 +1,6 @@
 # PS Challenge API
 
-This API is built using Node.js, TypeScript, Express, and TypeORM. It supports various functionalities like user authentication, room management, and payment processing(initial and recurring). The project uses dependency injection with `typedi` and integrates with cron jobs for scheduled tasks.
+This API is built using Node.js, TypeScript, Express, and TypeORM. It supports various functionalities like user authentication, room management, and payment processing(initial and recurring). The project uses dependency injection with `typedi` and integrates with cron jobs for the recurring transactions.
 Find the comprehensive postman documentation here: <a href="https://documenter.getpostman.com/view/22556744/2sAXxQfD4K#998357ca-d7d5-4137-bc9d-36edb98bb1d8" target="_blank">Postman documentation</a>
 
 ## Table of Contents
