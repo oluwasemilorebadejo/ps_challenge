@@ -17,4 +17,5 @@ export const AppDataSource = new DataSource({
   entities: [User, Room, Transaction, PaystackAuthorization],
   migrations: [],
   subscribers: [],
+  ssl: true,
 });
