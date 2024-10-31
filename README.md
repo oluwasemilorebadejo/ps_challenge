@@ -1,5 +1,23 @@
 # PS Challenge API
 
+## Project Description
+
+This app provides a platform for Nigerians to crowdfund for subscription services eg Netflix and Spotify, making it easier to enjoy shared access without the hassle of individual payments. By allowing users to make periodic contributions, the app simplifies collective subscriptions. Using Paystack’s APIs, the app automatically debits Contributors' accounts at set intervals, sending funds to a designated Collector's account, who in turn covers the subscription cost.
+
+### How It Works:
+
+User Sign-Up: Users join the app and choose their role as either a Collector or a Contributor.
+
+### Contributor Journey:
+
+Contributors join a room created by a Collector, authorizing their card for periodic debits.
+Their contributions go directly to the Collector's account, ensuring easy payment aggregation.
+Collector Journey:
+
+Collectors create a room, setting parameters like amount, group size, and the subscription service.
+The app periodically debits each Contributor, collecting funds in the Collector's account, from which the subscription is funded.
+This streamlined process makes it easier and more affordable for users to share and enjoy services collectively.
+
 ## Table of Contents
 
 - [Introduction] (#introduction)
