@@ -2,7 +2,7 @@
 
 ## Project Description
 
-This app provides a platform for Nigerians to crowdfund for subscription services eg Netflix and Spotify, making it easier to enjoy shared access without the hassle of individual payments. By allowing users to make periodic contributions, the app simplifies collective subscriptions. Using Paystack’s APIs, the app automatically debits Contributors' accounts at set intervals, sending funds to a designated Collector's account, who in turn covers the subscription cost.
+This app provides a platform for Nigerians to crowdfund for subscription services eg Spotify, making it easier to enjoy shared access without the hassle of individual payments. By allowing users to make periodic contributions, the app simplifies collective subscriptions. Using Paystack’s APIs, the app automatically debits Contributors' accounts at set intervals, sending funds to a designated Collector's account, who in turn covers the subscription cost.
 
 ### How It Works:
 
