@@ -20,7 +20,7 @@ This streamlined process makes it easier and more affordable for users to share 
 
 ## Table of Contents
 
-- [Introduction] (#introduction)
+- [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Environment Variables](#environment-variables)
